@@ -13,4 +13,5 @@ dependencies {
     implementation(project(":core-rules"))
     // Published with <packaging>jar</packaging> but the file is an AAR.
     api(libs.firestack) { artifact { type = "aar" } }
+    testImplementation(libs.junit)
 }

@@ -39,6 +39,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -68,6 +69,9 @@ import dev.warden.rules.BlocklistSource
 import dev.warden.rules.BlocklistState
 import dev.warden.rules.Blocklists
 import dev.warden.rules.Rules
+import dev.warden.engine.ProtectionNotification
+import dev.warden.engine.ProtectionTileService
+import androidx.compose.ui.platform.LocalContext
 import java.text.NumberFormat
 import dev.warden.design.R as DesignR
 
@@ -180,6 +184,12 @@ private fun SettingsHome(
 
         Section(stringResource(R.string.dns_title), note = stringResource(R.string.dns_note)) {
             DnsSettings()
+        }
+
+        Section(stringResource(R.string.settings_notifications), note = stringResource(R.string.settings_notifications_note)) {
+            NotificationTileRow()
+            HorizontalDivider(color = c.outline)
+            NotificationControlRow()
         }
 
         Section(stringResource(R.string.settings_appearance)) {
@@ -336,6 +346,80 @@ private fun ClearHistoryRow() {
             },
             dismissButton = { WardenButton(stringResource(R.string.settings_cancel), { confirm = false }, kind = ButtonKind.Text) },
             containerColor = c.surface,
+        )
+    }
+}
+
+@Composable
+private fun NotificationTileRow() {
+    val context = LocalContext.current
+    val c = Warden.colors
+    var showHelp by rememberSaveable { mutableStateOf<String?>(null) }
+    var added by rememberSaveable { mutableStateOf(false) }
+
+    Row(
+        Modifier.fillMaxWidth().heightIn(min = 64.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(Spacing.m),
+    ) {
+        IconBadge(DesignR.drawable.ph_power, c.primary)
+        Column(Modifier.weight(1f)) {
+            Text(stringResource(R.string.settings_tile_title), style = Warden.type.body)
+            Text(stringResource(R.string.settings_tile_body), style = Warden.type.label, color = c.muted)
+        }
+        WardenButton(
+            text = stringResource(if (added) R.string.settings_tile_added else R.string.settings_tile_add),
+            onClick = {
+                ProtectionTileService.requestAddTile(context) { success, message ->
+                    if (success) {
+                        added = true
+                        if (message != null) showHelp = message
+                    } else if (message != null) {
+                        showHelp = message
+                    }
+                }
+            },
+            kind = if (added) ButtonKind.Tonal else ButtonKind.Primary,
+            enabled = !added,
+        )
+    }
+
+    if (showHelp != null) {
+        AlertDialog(
+            onDismissRequest = { showHelp = null },
+            title = { Text(stringResource(R.string.settings_tile_help_title), style = Warden.type.title) },
+            text = { Text(showHelp ?: "", style = Warden.type.body) },
+            confirmButton = {
+                WardenButton(stringResource(R.string.settings_tile_help_ok), { showHelp = null }, kind = ButtonKind.Primary)
+            },
+            containerColor = c.surface,
+        )
+    }
+}
+
+@Composable
+private fun NotificationControlRow() {
+    val context = LocalContext.current
+    val c = Warden.colors
+    var enabled by remember { mutableStateOf(ProtectionNotification.isControlEnabled(context)) }
+
+    Row(
+        Modifier.fillMaxWidth().heightIn(min = 64.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(Spacing.m),
+    ) {
+        IconBadge(DesignR.drawable.ph_bell_simple_light, c.palette[3])
+        Column(Modifier.weight(1f)) {
+            Text(stringResource(R.string.settings_notif_control_title), style = Warden.type.body)
+            Text(stringResource(R.string.settings_notif_control_body), style = Warden.type.label, color = c.muted)
+        }
+        WardenSwitch(
+            checked = enabled,
+            onCheckedChange = {
+                enabled = it
+                ProtectionNotification.setControlEnabled(context, it)
+            },
+            contentDescription = stringResource(R.string.settings_notif_control_title),
         )
     }
 }

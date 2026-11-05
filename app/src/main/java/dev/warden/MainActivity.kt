@@ -25,6 +25,7 @@ import dev.warden.design.ThemeMode
 import dev.warden.design.Warden
 import dev.warden.design.WardenTheme
 import dev.warden.data.History
+import dev.warden.engine.ProtectionNotification
 import dev.warden.rules.Rules
 
 class MainActivity : ComponentActivity() {
@@ -45,6 +46,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         preferHighestRefreshRate()
         Rules.init(this)
+        ProtectionNotification.update(this)
         // ponytail: one boolean in SharedPreferences; DataStore arrives with real settings in M7.
         val prefs = getSharedPreferences("warden", MODE_PRIVATE)
 

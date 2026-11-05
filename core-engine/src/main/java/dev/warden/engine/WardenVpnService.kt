@@ -1,9 +1,7 @@
 package dev.warden.engine
 
 import android.app.Notification
-import android.app.NotificationChannel
 import android.app.NotificationManager
-import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
@@ -103,7 +101,7 @@ class WardenVpnService : VpnService(), Bridge {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        if (intent?.action == ACTION_STOP) {
+        if (intent?.action == ACTION_STOP || intent?.action == ProtectionActionReceiver.ACTION_STOP) {
             shutdown()
             return START_NOT_STICKY
         }
@@ -164,6 +162,8 @@ class WardenVpnService : VpnService(), Bridge {
         useEncryptedDns()
         cm.registerDefaultNetworkCallback(networkCallback)
         Engine.setRunning(true)
+        ProtectionTileService.requestUpdate(this)
+        ProtectionNotification.cancelOffNotification(this)
         resets = CoroutineScope(Dispatchers.Default).launch {
             Rules.resets.collect { uids ->
                 runCatching { tunnel?.closeConns(uids) }.onFailure { Log.w(TAG, "closeConns($uids)", it) }
@@ -251,6 +251,8 @@ class WardenVpnService : VpnService(), Bridge {
         Engine.setDnsEncrypted(false)
         stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
+        ProtectionTileService.requestUpdate(this)
+        ProtectionNotification.update(this)
     }
 
     override fun onRevoke() = shutdown() // another VPN took over, or the user revoked consent
@@ -261,28 +263,7 @@ class WardenVpnService : VpnService(), Bridge {
     }
 
     private fun notification(blocked: Int): Notification {
-        val nm = getSystemService(NotificationManager::class.java)
-        nm.createNotificationChannel(
-            NotificationChannel(CHANNEL, getString(R.string.engine_channel), NotificationManager.IMPORTANCE_LOW),
-        )
-        val stop = PendingIntent.getService(
-            this, 0, Intent(this, javaClass).setAction(ACTION_STOP), PendingIntent.FLAG_IMMUTABLE,
-        )
-        val open = packageManager.getLaunchIntentForPackage(packageName)?.let {
-            PendingIntent.getActivity(this, 0, it, PendingIntent.FLAG_IMMUTABLE)
-        }
-        return Notification.Builder(this, CHANNEL)
-            .setSmallIcon(R.drawable.ic_shield_check)
-            .setContentTitle(getString(R.string.engine_notif_title))
-            .setContentText(
-                if (blocked == 0) getString(R.string.engine_notif_text)
-                else resources.getQuantityString(R.plurals.engine_notif_blocked, blocked, blocked),
-            )
-            .setOnlyAlertOnce(true)
-            .setOngoing(true)
-            .setContentIntent(open)
-            .addAction(Notification.Action.Builder(null, getString(R.string.engine_notif_stop), stop).build())
-            .build()
+        return ProtectionNotification.buildRunningNotification(this, blocked)
     }
 
     // ---- firestack callbacks: run on Go threads, keep them short and never block ----
@@ -424,7 +405,6 @@ class WardenVpnService : VpnService(), Bridge {
 
         private const val TAG = "WardenVpn"
         private const val ACTION_STOP = "dev.warden.engine.STOP"
-        private const val CHANNEL = "status"
         private const val NOTIFICATION_ID = 1
         private const val MTU = 1500
         private const val MS_PER_S = 1000

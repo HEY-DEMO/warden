@@ -52,6 +52,7 @@
 **DNS and network**
 - **Encrypted DNS**: send lookups to Cloudflare, Quad9 or your own DNS-over-HTTPS server, so your Wi-Fi or carrier can't read them.
 - **Private DNS warning** when Android's own setting would bypass Warden, with a link to fix it.
+- **Notification controls & Quick Settings tile**: turn protection on and off with one tap from your notification shade without opening the app.
 - **Survives network changes**, rebuilding itself when you move between IPv4-only and IPv6 networks.
 
 **Built to be light and private**

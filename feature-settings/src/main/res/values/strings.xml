@@ -32,6 +32,18 @@
     <string name="settings_bl_entries">%1$s domains · %2$s</string>
     <string name="settings_bl_license">%1$s</string>
 
+    <string name="settings_notifications">Quick Settings &amp; notifications</string>
+    <string name="settings_notifications_note">Turn protection on or off directly without opening the app.</string>
+    <string name="settings_tile_title">Notification button</string>
+    <string name="settings_tile_body">Add a quick settings button to your notification panel to turn protection on and off with one tap.</string>
+    <string name="settings_tile_add">Add button</string>
+    <string name="settings_tile_added">Added</string>
+    <string name="settings_tile_help_title">Notification button</string>
+    <string name="settings_tile_help_body">Swipe down twice from the top of your screen, tap the edit icon, and drag Protection into your active quick settings tiles.</string>
+    <string name="settings_tile_help_ok">Got it</string>
+    <string name="settings_notif_control_title">Notification controls</string>
+    <string name="settings_notif_control_body">Keep a notification with a button to turn protection back on when paused.</string>
+
     <string name="settings_appearance">Appearance</string>
     <string name="settings_theme_system">System</string>
     <string name="settings_theme_light">Light</string>
