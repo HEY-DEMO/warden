@@ -1,5 +1,7 @@
 package dev.warden
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
@@ -7,6 +9,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -46,6 +49,14 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         preferHighestRefreshRate()
         Rules.init(this)
+        val requestNotif = registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+            if (granted) ProtectionNotification.update(this)
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                requestNotif.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }
+        }
         ProtectionNotification.update(this)
         // ponytail: one boolean in SharedPreferences; DataStore arrives with real settings in M7.
         val prefs = getSharedPreferences("warden", MODE_PRIVATE)

@@ -14,6 +14,7 @@ class ProtectionActionReceiver : BroadcastReceiver() {
         when (intent?.action) {
             ACTION_STOP -> {
                 WardenVpnService.stop(context)
+                ProtectionNotification.cancelAll(context)
             }
             ACTION_START -> {
                 val prepareIntent = VpnService.prepare(context)
@@ -35,4 +36,3 @@ class ProtectionActionReceiver : BroadcastReceiver() {
         const val ACTION_START = "dev.warden.engine.ACTION_START"
     }
 }
-

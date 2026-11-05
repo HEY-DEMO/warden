@@ -252,7 +252,7 @@ class WardenVpnService : VpnService(), Bridge {
         stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
         ProtectionTileService.requestUpdate(this)
-        ProtectionNotification.update(this)
+        ProtectionNotification.cancelAll(this)
     }
 
     override fun onRevoke() = shutdown() // another VPN took over, or the user revoked consent

@@ -6,12 +6,13 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 
 /**
- * Manages active protection notifications and optional persistent controls to pause or resume protection.
+ * Manages active protection notifications and optional controls to pause or resume protection.
  */
 object ProtectionNotification {
-    private const val CHANNEL = "status"
+    private const val CHANNEL = "warden_protection"
     const val NOTIFICATION_ID_RUNNING = 1
     const val NOTIFICATION_ID_OFF = 2
     private const val PREFS_NAME = "warden"
@@ -35,10 +36,11 @@ object ProtectionNotification {
         ensureChannel(context, nm)
         if (Engine.running.value) {
             cancelOffNotification(context)
+            nm.notify(NOTIFICATION_ID_RUNNING, buildRunningNotification(context, Engine.blocked.get()))
         } else if (isControlEnabled(context)) {
             nm.notify(NOTIFICATION_ID_OFF, buildOffNotification(context))
         } else {
-            cancelOffNotification(context)
+            cancelAll(context)
         }
     }
 
@@ -47,12 +49,24 @@ object ProtectionNotification {
         nm.cancel(NOTIFICATION_ID_OFF)
     }
 
-    private fun ensureChannel(context: Context, nm: NotificationManager) {
+    fun cancelAll(context: Context) {
+        val nm = context.getSystemService(NotificationManager::class.java) ?: return
+        nm.cancel(NOTIFICATION_ID_RUNNING)
+        nm.cancel(NOTIFICATION_ID_OFF)
+    }
+
+    private fun ensureChannel(context: Context, nm: NotificationManager?) {
+        if (nm == null) return
+        runCatching { nm.deleteNotificationChannel("status") }
         val channel = NotificationChannel(
             CHANNEL,
             context.getString(R.string.engine_channel),
-            NotificationManager.IMPORTANCE_LOW,
-        )
+            NotificationManager.IMPORTANCE_DEFAULT,
+        ).apply {
+            setShowBadge(false)
+            setSound(null, null)
+            enableVibration(false)
+        }
         nm.createNotificationChannel(channel)
     }
 
@@ -74,13 +88,16 @@ object ProtectionNotification {
             context.resources.getQuantityString(R.plurals.engine_notif_blocked, blocked, blocked)
         }
 
-        return Notification.Builder(context, CHANNEL)
+        val builder = Notification.Builder(context, CHANNEL)
             .setSmallIcon(R.drawable.ic_shield_check)
             .setContentTitle(context.getString(R.string.engine_notif_title))
             .setContentText(text)
             .setStyle(Notification.BigTextStyle().bigText(text))
             .setOnlyAlertOnce(true)
             .setOngoing(true)
+            .setAutoCancel(false)
+            .setCategory(Notification.CATEGORY_SERVICE)
+            .setVisibility(Notification.VISIBILITY_PUBLIC)
             .setContentIntent(open)
             .addAction(
                 Notification.Action.Builder(
@@ -89,7 +106,12 @@ object ProtectionNotification {
                     stop,
                 ).build(),
             )
-            .build()
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            builder.setForegroundServiceBehavior(Notification.FOREGROUND_SERVICE_IMMEDIATE)
+        }
+
+        return builder.build()
     }
 
     private fun buildOffNotification(context: Context): Notification {
@@ -110,7 +132,8 @@ object ProtectionNotification {
             .setContentText(text)
             .setStyle(Notification.BigTextStyle().bigText(text))
             .setOnlyAlertOnce(true)
-            .setOngoing(true)
+            .setOngoing(false)
+            .setAutoCancel(true)
             .setContentIntent(open)
             .addAction(
                 Notification.Action.Builder(
@@ -122,4 +145,3 @@ object ProtectionNotification {
             .build()
     }
 }
-

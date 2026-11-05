@@ -31,4 +31,3 @@ class EngineStateTest {
         assertEquals(2, ProtectionNotification.NOTIFICATION_ID_OFF)
     }
 }
-

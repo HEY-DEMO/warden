@@ -7,7 +7,7 @@
         <item quantity="one">%d connection blocked since Warden started.</item>
         <item quantity="other">%d connections blocked since Warden started.</item>
     </plurals>
-    <string name="engine_notif_stop">Turn off</string>
+    <string name="engine_notif_stop">Stop</string>
     <string name="engine_notif_turn_on">Turn on</string>
     <string name="engine_notif_off_title">Warden is paused</string>
     <string name="engine_notif_off_text">Tap Turn on to resume firewall protection.</string>
