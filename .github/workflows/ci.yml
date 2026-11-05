@@ -18,6 +18,8 @@ jobs:
           distribution: temurin
           java-version: 17
       - uses: gradle/actions/setup-gradle@v4
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
       - name: Checks
         run: ./gradlew detekt testDebugUnitTest
       - name: Build debug APKs
