@@ -8,31 +8,23 @@ import android.content.Intent
 import android.graphics.drawable.Icon
 import android.net.VpnService
 import android.os.Build
-import android.os.Handler
-import android.os.Looper
 import android.service.quicksettings.Tile
 import android.service.quicksettings.TileService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
-import java.util.concurrent.Executor
 
 /**
  * Quick Settings tile letting the user toggle Warden protection directly from the notification shade.
  */
 class ProtectionTileService : TileService() {
 
-    private var scope: CoroutineScope? = null
     private var listenJob: Job? = null
 
     override fun onStartListening() {
         super.onStartListening()
-        updateTileState(Engine.running.value)
-        val s = CoroutineScope(Dispatchers.Main)
-        scope = s
-        listenJob = s.launch {
+        listenJob = CoroutineScope(Dispatchers.Main).launch {
             Engine.running.collect { running ->
                 updateTileState(running)
             }
@@ -42,8 +34,6 @@ class ProtectionTileService : TileService() {
     override fun onStopListening() {
         listenJob?.cancel()
         listenJob = null
-        scope?.cancel()
-        scope = null
         super.onStopListening()
     }
 
@@ -106,12 +96,11 @@ class ProtectionTileService : TileService() {
                     return
                 }
                 val component = ComponentName(context, ProtectionTileService::class.java)
-                val executor = Executor { command -> Handler(Looper.getMainLooper()).post(command) }
                 sbm.requestAddTileService(
                     component,
                     context.getString(R.string.tile_protection_label),
                     Icon.createWithResource(context, R.drawable.ic_shield_check),
-                    executor,
+                    context.mainExecutor,
                 ) { statusCode ->
                     when (statusCode) {
                         StatusBarManager.TILE_ADD_REQUEST_RESULT_TILE_ADDED -> onResult(true, null)

@@ -1,12 +1,10 @@
 package dev.warden
 
-import android.Manifest
 import android.app.Activity
 import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.net.VpnService
-import android.os.Build
 import android.os.Process
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -330,9 +328,6 @@ private fun rememberPower(running: Boolean): Pair<PowerState, () -> Unit> {
     val consent = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {
         if (it.resultCode == Activity.RESULT_OK) WardenVpnService.start(context) else connecting = false
     }
-    val notifPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
-        // Notification permission request completed
-    }
     LaunchedEffect(running) { if (running) connecting = false }
     LaunchedEffect(connecting) {
         if (connecting) {
@@ -349,11 +344,6 @@ private fun rememberPower(running: Boolean): Pair<PowerState, () -> Unit> {
         when {
             running -> WardenVpnService.stop(context)
             !connecting -> {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-                    context.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
-                ) {
-                    notifPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
-                }
                 connecting = true
                 VpnService.prepare(context)?.let(consent::launch) ?: WardenVpnService.start(context)
             }

@@ -8,13 +8,9 @@
         <item quantity="other">%d connections blocked since Warden started.</item>
     </plurals>
     <string name="engine_notif_stop">Stop</string>
-    <string name="engine_notif_turn_on">Turn on</string>
-    <string name="engine_notif_off_title">Warden is paused</string>
-    <string name="engine_notif_off_text">Tap Turn on to resume firewall protection.</string>
     <string name="tile_protection_label">Protection</string>
     <string name="tile_protection_on">Protected</string>
     <string name="tile_protection_off">Protection off</string>
-    <string name="tile_protection_description">Turn Warden protection on or off</string>
     <string name="tile_already_added">The button is already in your notification panel.</string>
     <string name="tile_manual_add_instructions">To add the button, swipe down twice from the top of your screen, tap the edit icon, and drag Protection into your active quick settings tiles.</string>
 </resources>

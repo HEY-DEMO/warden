@@ -22,12 +22,10 @@ class EngineStateTest {
     @Test
     fun protectionActionConstants() {
         assertEquals("dev.warden.engine.ACTION_STOP", ProtectionActionReceiver.ACTION_STOP)
-        assertEquals("dev.warden.engine.ACTION_START", ProtectionActionReceiver.ACTION_START)
     }
 
     @Test
     fun protectionNotificationConstants() {
         assertEquals(1, ProtectionNotification.NOTIFICATION_ID_RUNNING)
-        assertEquals(2, ProtectionNotification.NOTIFICATION_ID_OFF)
     }
 }

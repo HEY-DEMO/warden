@@ -101,7 +101,7 @@ class WardenVpnService : VpnService(), Bridge {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        if (intent?.action == ACTION_STOP || intent?.action == ProtectionActionReceiver.ACTION_STOP) {
+        if (intent?.action == ACTION_STOP) {
             shutdown()
             return START_NOT_STICKY
         }
@@ -163,7 +163,6 @@ class WardenVpnService : VpnService(), Bridge {
         cm.registerDefaultNetworkCallback(networkCallback)
         Engine.setRunning(true)
         ProtectionTileService.requestUpdate(this)
-        ProtectionNotification.cancelOffNotification(this)
         resets = CoroutineScope(Dispatchers.Default).launch {
             Rules.resets.collect { uids ->
                 runCatching { tunnel?.closeConns(uids) }.onFailure { Log.w(TAG, "closeConns($uids)", it) }
@@ -405,7 +404,7 @@ class WardenVpnService : VpnService(), Bridge {
 
         private const val TAG = "WardenVpn"
         private const val ACTION_STOP = "dev.warden.engine.STOP"
-        private const val NOTIFICATION_ID = 1
+        private const val NOTIFICATION_ID = ProtectionNotification.NOTIFICATION_ID_RUNNING
         private const val MTU = 1500
         private const val MS_PER_S = 1000
         private const val NOTIFY_EVERY_MS = 10_000L
